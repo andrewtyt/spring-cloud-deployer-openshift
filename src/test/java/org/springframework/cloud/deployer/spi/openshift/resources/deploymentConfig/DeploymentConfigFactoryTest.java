@@ -1,7 +1,9 @@
 package org.springframework.cloud.deployer.spi.openshift.resources.deploymentConfig;
 
+import static java.util.Collections.singletonMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.springframework.cloud.deployer.spi.kubernetes.KubernetesDeployerProperties.KUBERNETES_DEPLOYMENT_NODE_SELECTOR;
 
 import java.util.Collections;
 import java.util.Map;
@@ -39,7 +41,12 @@ public class DeploymentConfigFactoryTest {
 				new VolumeFactory(new OpenShiftDeployerProperties()));
 
 		AppDeploymentRequest request = new AppDeploymentRequest(
-				new AppDefinition("testapp-source", null), mock(Resource.class));
+			new AppDefinition("testapp-source", null),
+			mock(Resource.class),
+			singletonMap(
+				KUBERNETES_DEPLOYMENT_NODE_SELECTOR,
+				"ns-key-1:ns-value-1, ns-key-2 : ns-value-2")
+		);
 
 		DeploymentConfig deploymentConfig = deploymentConfigFactory.build(request,
 				"testapp-source", new Container(), null, null, ImagePullPolicy.Always);
@@ -49,7 +56,7 @@ public class DeploymentConfigFactoryTest {
 		assertThat(deploymentConfig.getSpec().getTemplate().getSpec().getServiceAccount())
 				.isEmpty();
 		assertThat(deploymentConfig.getSpec().getTemplate().getSpec().getNodeSelector())
-				.isEmpty();
+				.isEqualTo(ImmutableMap.of("ns-key-1", "ns-value-1", "ns-key-2", "ns-value-2"));
 	}
 
 	@Test

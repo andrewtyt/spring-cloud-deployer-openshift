@@ -3,6 +3,7 @@ package org.springframework.cloud.deployer.spi.openshift;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cloud.deployer.spi.core.AppDeploymentRequest;
+import org.springframework.cloud.deployer.spi.kubernetes.KubernetesDeployerProperties;
 import org.springframework.util.Assert;
 
 import java.util.ArrayList;
@@ -101,4 +102,23 @@ public interface OpenShiftSupport extends DataflowSupport {
 		return labels;
 	}
 
+	default Map<String, String> resolveNodeSelectors(Map<String, String> properties) {
+		Map<String, String> nodeSelectors = new HashMap<>();
+
+		String nodeSelectorsProperty = properties
+			.getOrDefault(KubernetesDeployerProperties.KUBERNETES_DEPLOYMENT_NODE_SELECTOR, "");
+
+		if (org.springframework.util.StringUtils.hasText(nodeSelectorsProperty)) {
+			String[] nodeSelectorPairs = nodeSelectorsProperty.split(",");
+			for (String nodeSelectorPair : nodeSelectorPairs) {
+				String[] nodeSelector = nodeSelectorPair.split(":");
+				Assert.isTrue(
+					nodeSelector.length == 2,
+					format("Invalid nodeSelector value: '%s'", nodeSelectorPair));
+				nodeSelectors.put(nodeSelector[0].trim(), nodeSelector[1].trim());
+			}
+		}
+
+		return nodeSelectors;
+	}
 }
