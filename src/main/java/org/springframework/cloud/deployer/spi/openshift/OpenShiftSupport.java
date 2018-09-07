@@ -105,20 +105,20 @@ public interface OpenShiftSupport extends DataflowSupport {
 	default Map<String, String> resolveNodeSelectors(Map<String, String> properties) {
 		Map<String, String> nodeSelectors = new HashMap<>();
 
-		String nodeSelectorsProperty = properties
-			.getOrDefault(KubernetesDeployerProperties.KUBERNETES_DEPLOYMENT_NODE_SELECTOR, "");
+		String nodeSelectorsProperty = properties.getOrDefault(
+				KubernetesDeployerProperties.KUBERNETES_DEPLOYMENT_NODE_SELECTOR, "");
 
 		if (org.springframework.util.StringUtils.hasText(nodeSelectorsProperty)) {
 			String[] nodeSelectorPairs = nodeSelectorsProperty.split(",");
 			for (String nodeSelectorPair : nodeSelectorPairs) {
 				String[] nodeSelector = nodeSelectorPair.split(":");
-				Assert.isTrue(
-					nodeSelector.length == 2,
-					format("Invalid nodeSelector value: '%s'", nodeSelectorPair));
+				Assert.isTrue(nodeSelector.length == 2,
+						format("Invalid nodeSelector value: '%s'", nodeSelectorPair));
 				nodeSelectors.put(nodeSelector[0].trim(), nodeSelector[1].trim());
 			}
 		}
 
 		return nodeSelectors;
 	}
+
 }

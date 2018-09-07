@@ -23,62 +23,62 @@ import io.fabric8.openshift.api.model.DeploymentTriggerPolicyBuilder;
 import io.fabric8.openshift.client.OpenShiftClient;
 
 public class DeploymentConfigFactory
-        implements ObjectFactory<DeploymentConfig>, OpenShiftSupport, DataflowSupport {
+		implements ObjectFactory<DeploymentConfig>, OpenShiftSupport, DataflowSupport {
 
-    public static final String SPRING_DEPLOYMENT_TIMESTAMP = "spring-cloud-deployer/redeploy-timestamp";
+	public static final String SPRING_DEPLOYMENT_TIMESTAMP = "spring-cloud-deployer/redeploy-timestamp";
 
-    private OpenShiftClient client;
+	private OpenShiftClient client;
 
-    private Container container;
+	private Container container;
 
-    private Map<String, String> labels;
+	private Map<String, String> labels;
 
-    private ResourceRequirements resourceRequirements;
+	private ResourceRequirements resourceRequirements;
 
-    private ImagePullPolicy imagePullPolicy;
+	private ImagePullPolicy imagePullPolicy;
 
-    private VolumeFactory volumeFactory;
+	private VolumeFactory volumeFactory;
 
-    public DeploymentConfigFactory(OpenShiftClient client, Container container,
-            Map<String, String> labels, ResourceRequirements resourceRequirements,
-            ImagePullPolicy imagePullPolicy, VolumeFactory volumeFactory) {
-        this.client = client;
-        this.container = container;
-        this.labels = labels;
-        this.resourceRequirements = resourceRequirements;
-        this.imagePullPolicy = imagePullPolicy;
-        this.volumeFactory = volumeFactory;
-    }
+	public DeploymentConfigFactory(OpenShiftClient client, Container container,
+			Map<String, String> labels, ResourceRequirements resourceRequirements,
+			ImagePullPolicy imagePullPolicy, VolumeFactory volumeFactory) {
+		this.client = client;
+		this.container = container;
+		this.labels = labels;
+		this.resourceRequirements = resourceRequirements;
+		this.imagePullPolicy = imagePullPolicy;
+		this.volumeFactory = volumeFactory;
+	}
 
-    @Override
-    public DeploymentConfig addObject(AppDeploymentRequest request, String appId) {
-        DeploymentConfig deploymentConfig = build(request, appId, container, labels,
-                resourceRequirements, imagePullPolicy);
+	@Override
+	public DeploymentConfig addObject(AppDeploymentRequest request, String appId) {
+		DeploymentConfig deploymentConfig = build(request, appId, container, labels,
+				resourceRequirements, imagePullPolicy);
 
-        if (getExisting(appId).isPresent()) {
-            deploymentConfig = this.client.deploymentConfigs()
-                    .createOrReplace(deploymentConfig);
-        }
-        else {
-            deploymentConfig = this.client.deploymentConfigs().create(deploymentConfig);
-        }
+		if (getExisting(appId).isPresent()) {
+			deploymentConfig = this.client.deploymentConfigs()
+					.createOrReplace(deploymentConfig);
+		}
+		else {
+			deploymentConfig = this.client.deploymentConfigs().create(deploymentConfig);
+		}
 
-        return deploymentConfig;
-    }
+		return deploymentConfig;
+	}
 
-    @Override
-    public void applyObject(AppDeploymentRequest request, String appId) {
-        // if there are no builds in progress
-        if (client.builds().withLabels(labels).list().getItems().stream()
-                .noneMatch(build -> {
-                    String phase = build.getStatus().getPhase();
-                    return phase.equals("New") || phase.equals("Pending")
-                            || phase.equals("Running") || phase.equals("Failed");
-                })) {
-            // TODO when
-            // https://github.com/fabric8io/kubernetes-client/issues/507#issuecomment-246272404
-            // is implemented, rather kick off another deployment
-            //@formatter:off
+	@Override
+	public void applyObject(AppDeploymentRequest request, String appId) {
+		// if there are no builds in progress
+		if (client.builds().withLabels(labels).list().getItems().stream()
+				.noneMatch(build -> {
+					String phase = build.getStatus().getPhase();
+					return phase.equals("New") || phase.equals("Pending")
+							|| phase.equals("Running") || phase.equals("Failed");
+				})) {
+			// TODO when
+			// https://github.com/fabric8io/kubernetes-client/issues/507#issuecomment-246272404
+			// is implemented, rather kick off another deployment
+			//@formatter:off
             client.deploymentConfigs()
                 .withName(appId)
                 .edit()
@@ -88,21 +88,21 @@ public class DeploymentConfigFactory
                     .endMetadata()
                 .done();
             //@formatter:on
-        }
-    }
+		}
+	}
 
-    protected Optional<DeploymentConfig> getExisting(String name) {
-        return Optional
-                .ofNullable(client.deploymentConfigs().withName(name).fromServer().get());
-    }
+	protected Optional<DeploymentConfig> getExisting(String name) {
+		return Optional
+				.ofNullable(client.deploymentConfigs().withName(name).fromServer().get());
+	}
 
-    protected DeploymentConfig build(AppDeploymentRequest request, String appId,
-            Container container, Map<String, String> labels,
-            ResourceRequirements resourceRequirements, ImagePullPolicy imagePullPolicy) {
-        container.setResources(resourceRequirements);
-        container.setImagePullPolicy(imagePullPolicy.name());
+	protected DeploymentConfig build(AppDeploymentRequest request, String appId,
+			Container container, Map<String, String> labels,
+			ResourceRequirements resourceRequirements, ImagePullPolicy imagePullPolicy) {
+		container.setResources(resourceRequirements);
+		container.setImagePullPolicy(imagePullPolicy.name());
 
-        //@formatter:off
+		//@formatter:off
         return new DeploymentConfigBuilder()
             .withNewMetadata()
                 .withName(appId)
@@ -140,10 +140,10 @@ public class DeploymentConfigFactory
             .endSpec()
             .build();
         //@formatter:on
-    }
+	}
 
-    protected Integer getReplicas(AppDeploymentRequest request) {
-        return getAppInstanceCount(request);
-    }
+	protected Integer getReplicas(AppDeploymentRequest request) {
+		return getAppInstanceCount(request);
+	}
 
 }

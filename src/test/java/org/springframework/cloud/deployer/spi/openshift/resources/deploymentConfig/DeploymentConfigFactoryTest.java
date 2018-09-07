@@ -41,12 +41,9 @@ public class DeploymentConfigFactoryTest {
 				new VolumeFactory(new OpenShiftDeployerProperties()));
 
 		AppDeploymentRequest request = new AppDeploymentRequest(
-			new AppDefinition("testapp-source", null),
-			mock(Resource.class),
-			singletonMap(
-				KUBERNETES_DEPLOYMENT_NODE_SELECTOR,
-				"ns-key-1:ns-value-1, ns-key-2 : ns-value-2")
-		);
+				new AppDefinition("testapp-source", null), mock(Resource.class),
+				singletonMap(KUBERNETES_DEPLOYMENT_NODE_SELECTOR,
+						"ns-key-1:ns-value-1, ns-key-2 : ns-value-2"));
 
 		DeploymentConfig deploymentConfig = deploymentConfigFactory.build(request,
 				"testapp-source", new Container(), null, null, ImagePullPolicy.Always);
@@ -56,7 +53,8 @@ public class DeploymentConfigFactoryTest {
 		assertThat(deploymentConfig.getSpec().getTemplate().getSpec().getServiceAccount())
 				.isEmpty();
 		assertThat(deploymentConfig.getSpec().getTemplate().getSpec().getNodeSelector())
-				.isEqualTo(ImmutableMap.of("ns-key-1", "ns-value-1", "ns-key-2", "ns-value-2"));
+				.isEqualTo(ImmutableMap.of("ns-key-1", "ns-value-1", "ns-key-2",
+						"ns-value-2"));
 	}
 
 	@Test
